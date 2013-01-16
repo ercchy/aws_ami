@@ -48,3 +48,34 @@ print 'KEY_NAME:              ', args.key_name
 print 'INSTANCE_TYPE:         ', args.type
 print 'SECURITY_GROUPS:       ', args.security
 print 'USER_DATA:             ', args.user_data
+
+file = open(args.user_data).read()
+conn = boto.ec2.connect_to_region(args.region,
+    aws_access_key_id=args.key_id,
+    aws_secret_access_key=args.secret_key)
+
+print 'Creating instance ...'
+
+reservation = conn.run_instances(
+    args.ami_id,
+    key_name=args.key_name,
+    instance_type=args.type,
+    security_groups=args.security,
+    user_data=file)
+
+print 'Instance created ...'
+
+instance = reservation.instances[0]
+
+status = instance.update()
+while status == 'pending':
+    print 'Waiting for instance to start ...'
+    time.sleep(10)
+    status = instance.update()
+
+print 'Instance up and running ...'
+
+instance.add_tag('Name', 'new-ami')
+
+print 'Tag applied to instance ...'
+print 'Connect to instance %s and check cloud-init.log' % instance.public_dns_name
