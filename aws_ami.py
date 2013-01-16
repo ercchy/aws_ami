@@ -33,7 +33,7 @@ parser.add_argument('-s', '--security', dest='security', action='store',
                    help='Set the security list (default: empty list)')
 
 parser.add_argument('--file', '-f',
-                     dest='user_data',  required=True,
+                     dest='file_name',  required=True,
                      help='The content of a message.')
 
 
@@ -47,9 +47,11 @@ print 'AMI_ID:                ', args.ami_id
 print 'KEY_NAME:              ', args.key_name
 print 'INSTANCE_TYPE:         ', args.type
 print 'SECURITY_GROUPS:       ', args.security
-print 'USER_DATA:             ', args.user_data
+print 'FILE_NAME:             ', args.file_name
+print
 
-file = open(args.user_data).read()
+user_data = open(args.file_name).read()
+
 conn = boto.ec2.connect_to_region(args.region,
     aws_access_key_id=args.key_id,
     aws_secret_access_key=args.secret_key)
@@ -61,13 +63,13 @@ reservation = conn.run_instances(
     key_name=args.key_name,
     instance_type=args.type,
     security_groups=args.security,
-    user_data=file)
+    user_data=user_data)
 
 print 'Instance created ...'
 
 instance = reservation.instances[0]
-
 status = instance.update()
+
 while status == 'pending':
     print 'Waiting for instance to start ...'
     time.sleep(10)
