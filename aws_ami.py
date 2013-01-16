@@ -7,39 +7,41 @@ parser = ArgumentParser(description='Process data to make new ec2 instance for t
 
 
 parser.add_argument('-k', '--access-key', dest='key_id', action='store',
-                   default=None, type=str, required=True,
-                   help='Get the aws access key value')
+    default=None, type=str, required=True,
+    help='Get the aws access key value')
 
 parser.add_argument('-w', '--secret-key', dest='secret_key', action='store',
-                   default=None, type=str,  required=True,
-                   help='Get the aws secret key value')
+    default=None, type=str,  required=True,
+    help='Get the aws secret key value')
 
 parser.add_argument('-r', '--region', dest='region', action='store',
-                   default='eu-west-1', type=str,
-                   help='Set the region (default: eu-west-1)')
+    default='eu-west-1', type=str,
+    help='Set the region (default: eu-west-1)')
 
 parser.add_argument('-a', '--ami-id', dest='ami_id', action='store',
-                   default='ami-c37474b7', type=str,
-                   help='Set the ami-id (default: ami-c37474b7)')
+    default='ami-c37474b7', type=str,
+    help='Set the ami-id (default: ami-c37474b7)')
 
 parser.add_argument('-n', '--key-name', dest='key_name', action='store',
-                   default=None, type=str, required=True,
-                   help='Set the <key_name>.pem key name (default: None)')
+    default=None, type=str, required=True,
+    help='Set the <key_name>.pem key name (default: None)')
 
 parser.add_argument('-t', '--type', dest='type', action='store',
-                   default='m1.micro', type=str,
-                   help='Set the instance type (default: m1.micro)')
+    default='t1.micro', type=str,
+    help='Set the instance type (default: t1.micro)')
 
-parser.add_argument('-s', '--security', dest='security', action='store',
-                   default=[], nargs='+', type=str,
-                   help='Set the security list (default: empty list)')
+parser.add_argument('-s', '--security', dest='security_groups', action='store',
+    default=[], nargs='+', type=str,
+    help='Set the security list (default: empty list)')
 
 parser.add_argument('--file', '-f',
-                     dest='file_name', required=True, default='test_userdata.sh'
-                     help='User data file path for cloud init (default: test_userdata.sh)')
+    dest='file_name', default='test_userdata.sh',
+    help='The content of a message.')
 
 
 args = parser.parse_args()
+
+
 
 print
 print 'AWS_ACCESS_KEY_ID:     ', args.key_id
@@ -48,8 +50,8 @@ print 'AWS_REGION:            ', args.region
 print 'AMI_ID:                ', args.ami_id
 print 'KEY_NAME:              ', args.key_name
 print 'INSTANCE_TYPE:         ', args.type
-print 'SECURITY_GROUPS:       ', args.security
-print 'FILE_NAME:             ', args.file_name
+print 'SECURITY_GROUPS:       ', args.security_groups
+print 'USER_DATA:             ', args.file_name
 print
 
 user_data = open(args.file_name).read()
@@ -64,14 +66,14 @@ reservation = conn.run_instances(
     args.ami_id,
     key_name=args.key_name,
     instance_type=args.type,
-    security_groups=args.security,
+    security_groups=args.security_groups,
     user_data=user_data)
 
 print 'Instance created ...'
 
 instance = reservation.instances[0]
-status = instance.update()
 
+status = instance.update()
 while status == 'pending':
     print 'Waiting for instance to start ...'
     time.sleep(10)
@@ -83,3 +85,4 @@ instance.add_tag('Name', 'new-ami')
 
 print 'Tag applied to instance ...'
 print 'Connect to instance %s and check cloud-init.log' % instance.public_dns_name
+
