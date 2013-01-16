@@ -1,3 +1,5 @@
+import time
+import boto.ec2
 from argparse import ArgumentParser
 
 
@@ -33,8 +35,8 @@ parser.add_argument('-s', '--security', dest='security', action='store',
                    help='Set the security list (default: empty list)')
 
 parser.add_argument('--file', '-f',
-                     dest='file_name',  required=True,
-                     help='The content of a message.')
+                     dest='file_name', required=True, default='test_userdata.sh'
+                     help='User data file path for cloud init (default: test_userdata.sh)')
 
 
 args = parser.parse_args()
